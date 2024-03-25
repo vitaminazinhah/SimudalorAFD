@@ -25,6 +25,7 @@ states = []
 
 # Lista para armazenar as transições e seus símbolos
 transitions = []
+transictions = []
 
 # Lista para armazenar os estados finais
 final_states = set()
@@ -82,7 +83,8 @@ def draw_toolbar():
 
 
     return create_state_button, create_transition_button, delete_button, set_initial_button, set_final_button, test_word_button
-    
+
+
 # Função para desenhar os estados
 def draw_states():
     for state in states:
@@ -107,55 +109,66 @@ def draw_initial_arrow(position):
 
 # Função para desenhar as transições
 def draw_transitions():
+    state_positions = {state[1]: state[0] for state in states}  # Dicionário que mapeia nome do estado para posição
+
     for transition in transitions:
-        start_pos = transition[0]
-        end_pos = transition[1]
+        start_state_name = transition[0]
+        end_state_name = transition[1]
         symbol = transition[2]
 
-        if start_pos != end_pos:  # Se a transição não for um loop
-            # Calcular coordenadas médias para o texto
-            text_x = (start_pos[0] + end_pos[0]) // 2
-            text_y = (start_pos[1] + end_pos[1]) // 2
-            
-            # Ajustar a posição do texto para cima
-            text_y -= 10  # Subtrair 10 pixels para mover o texto para cima
-            
-            # Exibir o símbolo da transição
-            text_surface = font.render(symbol, True, BLACK)
-            text_rect = text_surface.get_rect(center=(text_x, text_y))
-            window.blit(text_surface, text_rect)
-            
-            # Desenhar linha entre os estados
-            pygame.draw.line(window, BLACK, start_pos, end_pos, 2)
-            
-            # Desenhar seta direcional
-            dx = end_pos[0] - start_pos[0]
-            dy = end_pos[1] - start_pos[1]
-            angle = math.atan2(dy, dx)
-            end_arrow = (end_pos[0] - 15 * math.cos(angle), end_pos[1] - 15 * math.sin(angle))
-            pygame.draw.polygon(window, BLACK, ((end_pos[0], end_pos[1]), 
-                                                 (end_arrow[0] + 10 * math.sin(angle + 0.4), end_arrow[1] + 10 * math.cos(angle + 0.4)), 
-                                                 (end_arrow[0] - 10 * math.sin(angle + 0.4), end_arrow[1] - 10 * math.cos(angle + 0.4))))
-        else:  # Se for um loop
-            # Calcular a posição final da seta de loop
-            end_arrow = (start_pos[0] + RADIUS * math.cos(math.pi / 4), start_pos[1] - RADIUS * math.sin(math.pi / 4))
+        # Verificar se os estados de início e fim estão presentes no dicionário
+        if start_state_name in state_positions and end_state_name in state_positions:
+            start_pos = state_positions[start_state_name]
+            end_pos = state_positions[end_state_name]
 
-            # Desenhar a linha curva do loop
-            pygame.draw.arc(window, BLACK, (start_pos[0] - RADIUS, start_pos[1] - RADIUS, RADIUS * 2, RADIUS * 2), math.pi / 4, 3 * math.pi / 2, 2)
-            
-            # Desenhar seta direcional do loop
-            dx = end_arrow[0] - start_pos[0]
-            dy = end_arrow[1] - start_pos[1]
-            angle = math.atan2(dy, dx)
-            end_arrow_head = (end_arrow[0] - 10 * math.cos(angle), end_arrow[1] - 10 * math.sin(angle))
-            pygame.draw.polygon(window, BLACK, ((end_arrow[0], end_arrow[1]), 
-                                                 (end_arrow_head[0] + 5 * math.sin(angle + 0.4), end_arrow_head[1] + 5 * math.cos(angle + 0.4)), 
-                                                 (end_arrow_head[0] - 5 * math.sin(angle + 0.4), end_arrow_head[1] - 5 * math.cos(angle + 0.4))))
-            
-            # Exibir o símbolo da transição no meio do loop
-            text_surface = font.render(symbol, True, BLACK)
-            text_rect = text_surface.get_rect(center=((start_pos[0] + end_arrow[0]) // 2, (start_pos[1] + end_arrow[1]) // 2))
-            window.blit(text_surface, text_rect)
+            if start_state_name == end_state_name:  # Se for um loop
+                # Calcular a posição final da seta de loop
+                end_arrow = (start_pos[0] + RADIUS * math.cos(math.pi / 4), start_pos[1] - RADIUS * math.sin(math.pi / 4))
+
+                # Desenhar a linha curva do loop
+                pygame.draw.arc(window, BLACK, (start_pos[0] - RADIUS, start_pos[1] - RADIUS, RADIUS * 2, RADIUS * 2), math.pi / 4, 3 * math.pi / 2, 2)
+
+                # Desenhar seta direcional do loop
+                dx = end_arrow[0] - start_pos[0]
+                dy = end_arrow[1] - start_pos[1]
+                angle = math.atan2(dy, dx)
+                end_arrow_head = (end_arrow[0] - 10 * math.cos(angle), end_arrow[1] - 10 * math.sin(angle))
+                pygame.draw.polygon(window, BLACK, ((end_arrow[0], end_arrow[1]),
+                                                     (end_arrow_head[0] + 5 * math.sin(angle + 0.4), end_arrow_head[1] + 5 * math.cos(angle + 0.4)),
+                                                     (end_arrow_head[0] - 5 * math.sin(angle + 0.4), end_arrow_head[1] - 5 * math.cos(angle + 0.4))))
+
+                # Exibir o símbolo da transição no meio do loop
+                text_surface = font.render(symbol, True, BLACK)
+                text_rect = text_surface.get_rect(center=((start_pos[0] + end_arrow[0]) // 2, (start_pos[1] + end_arrow[1]) // 2))
+                window.blit(text_surface, text_rect)
+            else:  # Se não for um loop
+                # Calcular coordenadas médias para o texto
+                text_x = (start_pos[0] + end_pos[0]) // 2
+                text_y = (start_pos[1] + end_pos[1]) // 2
+
+                # Ajustar a posição do texto para cima
+                text_y -= 10  # Subtrair 10 pixels para mover o texto para cima
+
+                # Exibir o símbolo da transição
+                text_surface = font.render(symbol, True, BLACK)
+                text_rect = text_surface.get_rect(center=(text_x, text_y))
+                window.blit(text_surface, text_rect)
+
+                # Desenhar linha entre os estados
+                pygame.draw.line(window, BLACK, start_pos, end_pos, 2)
+
+                # Desenhar seta direcional
+                dx = end_pos[0] - start_pos[0]
+                dy = end_pos[1] - start_pos[1]
+                angle = math.atan2(dy, dx)
+                end_arrow = (end_pos[0] - 15 * math.cos(angle), end_pos[1] - 15 * math.sin(angle))
+                pygame.draw.polygon(window, BLACK, ((end_pos[0], end_pos[1]),
+                                                     (end_arrow[0] + 10 * math.sin(angle + 0.4),
+                                                      end_arrow[1] + 10 * math.cos(angle + 0.4)),
+                                                     (end_arrow[0] - 10 * math.sin(angle + 0.4),
+                                                      end_arrow[1] - 10 * math.cos(angle + 0.4))))
+
+
 
 # Função para desenhar texto
 def draw_text(text, color, x, y):
@@ -163,17 +176,47 @@ def draw_text(text, color, x, y):
     window.blit(text_surface, (x, y))
 
 def test_word(word):
-    current_state = initial_state
+    current_state = initial_state  # Inicializa o estado atual com o estado inicial do autômato
+
+    # Itera sobre cada símbolo da palavra
     for symbol in word:
-        found_transition = False
+        found_transition = False  # Variável para indicar se foi encontrada uma transição válida para o símbolo atual
+        
+        # Itera sobre cada transição definida no autômato
         for transition in transitions:
+            # Verifica se a transição é válida para o estado atual e o símbolo atual
             if transition[0] == current_state and transition[2] == symbol:
-                current_state = transition[1]
-                found_transition = True
-                break
+                current_state = transition[1]  # Atualiza o estado atual para o estado de destino da transição
+                found_transition = True  # Marca que uma transição válida foi encontrada
+                break  # Interrompe o loop assim que uma transição válida é encontrada
+        
+        # Se nenhuma transição válida for encontrada para o símbolo atual, a palavra é rejeitada
         if not found_transition:
             return False
+    
+    # Verifica se o estado atual após processar toda a palavra é um estado final
     return current_state in final_states
+
+
+def get_user_input():
+    user_input = ""
+    input_active = True
+    while input_active:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    input_active = False
+                elif event.key == pygame.K_BACKSPACE:
+                    user_input = user_input[:-1]
+                else:
+                    user_input += event.unicode
+        window.fill(WHITE)
+        draw_text("Digite a palavra:", BLACK, 10, 10)
+        pygame.draw.rect(window, WHITE, (150, 5, 200, 30))
+        pygame.draw.rect(window, BLACK, (150, 5, 200, 30), 2)
+        draw_text(user_input, BLACK, 160, 10)
+        pygame.display.flip()
+    return user_input
 
 # Função principal do programa
 def main():
@@ -201,49 +244,95 @@ def main():
                 pos = pygame.mouse.get_pos()
                 if create_state_button.collidepoint(pos):
                     create_state_active = not create_state_active
+                    create_transition_active = False
+                    delete_active = False
+                    set_initial_active = False
+                    set_final_active = False
+                    
                 elif create_transition_button.collidepoint(pos):
                     create_transition_active = not create_transition_active
+                    create_state_active = False
+                    delete_active = False
+                    set_initial_active = False
+                    set_final_active = False
+
                 elif delete_button.collidepoint(pos):
                     delete_active = not delete_active
+                    create_state_active = False
+                    create_transition_active = False
+                    set_initial_active = False
+                    set_final_active = False
+
                 elif set_initial_button.collidepoint(pos):
                     set_initial_active = not set_initial_active
+                    create_state_active = False
+                    create_transition_active = False
+                    delete_active = False
                     set_final_active = False
+
                 elif set_final_button.collidepoint(pos):
                     set_final_active = not set_final_active
                     set_initial_active = False
+                    create_state_active = False
+                    create_transition_active = False
+                    delete_active = False
+
                 elif create_state_active:
                     state_name = f'q{len(states)}'  # Nome do estado com prefixo "q" minúsculo e número
                     states.append((pos, state_name, False))
+                
+                #monta a tupla de transiçoes 
                 elif create_transition_active:
                     if start_state is None:
                         for state in states:
                             if pygame.Rect(state[0][0] - RADIUS, state[0][1] - RADIUS, RADIUS * 2,
-                                           RADIUS * 2).collidepoint(pos):
-                                start_state = state[0]
+                                        RADIUS * 2).collidepoint(pos):
+                                start_state = state[1]  # Armazena o nome do estado de início
                                 break
                     else:
                         for state in states:
                             if pygame.Rect(state[0][0] - RADIUS, state[0][1] - RADIUS, RADIUS * 2,
-                                           RADIUS * 2).collidepoint(pos):
-                                transitions.append((start_state, state[0], input_text))
+                                        RADIUS * 2).collidepoint(pos):
+                                transitions.append((start_state, state[1], input_text))  # Armazena o nome dos estados de início e fim
                                 start_state = None
                                 input_text = ""  # Limpar o texto de entrada
+
+                                # Calcular o ponto médio entre os centros dos estados de início e fim
+                                text_x = (state[0][0] + states[states.index((state[0], state[1], False))][0][0]) // 2
+                                text_y = (state[0][1] + states[states.index((state[0], state[1], False))][0][1]) // 2
                                 break
+
                 elif delete_active:
+                    state_positions = {state[1]: state[0] for state in states}  # Dicionário que mapeia nome do estado para posição
+
+                    # Verifica se o clique foi em um estado
                     for state in states:
-                        if pygame.Rect(state[0][0] - RADIUS, state[0][1] - RADIUS, RADIUS * 2,
-                                       RADIUS * 2).collidepoint(pos):
+                        # Corrigindo a criação do retângulo para verificar colisões com o mouse
+                        if pygame.Rect(state[0][0] - RADIUS, state[0][1] - RADIUS, RADIUS * 2, RADIUS * 2).collidepoint(pos):
+                            # Remove o estado da lista de estados
                             states.remove(state)
+                            # Remove o estado da lista de estados finais, se estiver presente
                             if state[1] in final_states:
                                 final_states.remove(state[1])
+                            # Remove o estado inicial, se for o estado removido
                             if state[1] == initial_state:
                                 initial_state = None
+                            # Remove também as transições que partem ou chegam nesse estado
+                            transitions = [t for t in transitions if t[0] != state[1] and t[1] != state[1]]
                             break
+
+                    # Verifica se o clique foi em uma linha de transição
                     for transition in transitions:
-                        if pygame.Rect(transition[0][0], transition[0][1], transition[1][0],
-                                       transition[1][1]).collidepoint(pos):
+                        start_pos = state_positions[transition[0]]
+                        end_pos = state_positions[transition[1]]
+                        width = abs(end_pos[0] - start_pos[0])
+                        height = abs(end_pos[1] - start_pos[1])
+                        if pygame.Rect(start_pos[0], start_pos[1], width, height).collidepoint(pos):
+                            # Remove a transição da lista de transições
                             transitions.remove(transition)
                             break
+
+
                 elif set_initial_active:
                     for i, state in enumerate(states):
                         if pygame.Rect(state[0][0] - RADIUS, state[0][1] - RADIUS, RADIUS * 2,
@@ -251,6 +340,7 @@ def main():
                             initial_state = state[1]
                             states[i] = (state[0], state[1], True)
                             break
+
                 elif set_final_active:
                     for state in states:
                         if pygame.Rect(state[0][0] - RADIUS, state[0][1] - RADIUS, RADIUS * 2,
@@ -260,6 +350,11 @@ def main():
                             else:
                                 final_states.add(state[1])
                             break
+
+                elif test_word_button.collidepoint(pos):
+                    word = get_user_input()  # Abrir janela para entrada de palavra
+                    word_test_result = "Aceita" if test_word(word) else "Rejeitada"
+
             elif event.type == pygame.KEYDOWN:
                 if create_transition_active:
                     if event.key == pygame.K_BACKSPACE:
